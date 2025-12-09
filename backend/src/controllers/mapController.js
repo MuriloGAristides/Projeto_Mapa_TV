@@ -24,21 +24,23 @@ const getMapData = async (req, res) => {
 
         // 1. GPS
         const gpsQuery = `
-            WITH UltimaEntrega AS (
-                SELECT DISTINCT ON (placa) placa, status, empresa
-                FROM tabelas_64.cadvendamovtoano_entregas
-                WHERE data_cadastro >= ($2::date - INTERVAL '7 days')
-                ORDER BY placa, data_cadastro DESC, hora_cadastro DESC
+            WITH UltimaAEM AS (
+                SELECT DISTINCT ON (numero_placa_veiculo)
+                    numero_placa_veiculo AS placa,
+                    codigo_grupo_estoque 
+                FROM tabelas_64.cadvendamovtoanoaems
+                WHERE data_emissao >= (NOW() - INTERVAL '15 days')
+                ORDER BY numero_placa_veiculo, data_emissao DESC, hora_emissao DESC
             )
             SELECT DISTINCT ON (g.placa)
-                g.placa, g.lat, g.lon, (g.data + g.hora) as event_time, e.empresa
+                g.placa, g.lat, g.lon, (g.data + g.hora) as event_time, ua.codigo_grupo_estoque
             FROM tabelas_64.cadvendamovtoano_entregas_gps g
-            INNER JOIN UltimaEntrega e ON g.placa = e.placa
-            WHERE (g.data + g.hora) >= (NOW() - INTERVAL '12 hours')
-              AND e.empresa = $1 AND e.status IN (1, 2, 3)
+            INNER JOIN UltimaAEM ua ON g.placa = ua.placa
+            WHERE (g.data + g.hora) >= (NOW() - INTERVAL '24 hours')
+              AND ua.codigo_grupo_estoque = $1 
             ORDER BY g.placa, g.data DESC, g.hora DESC
         `;
-        const gpsRes = await pool.query(gpsQuery, [companyId, today]);
+        const gpsRes = await pool.query(gpsQuery, [companyId]);
 
         // 2. Status Ao Vivo
         const statusQuery = `
@@ -46,9 +48,9 @@ const getMapData = async (req, res) => {
             FROM tabelas_64.cadvendamovtoano_entregas e
             LEFT JOIN tabelas_64.cadcobraclientes c ON e.codigo_cliente = c.codigo_cliente
             WHERE e.empresa = $1 AND e.status IN (1, 3) 
-            AND e.data_cadastro >= ($2::date - INTERVAL '7 days')
+            AND e.data_cadastro >= (NOW() - INTERVAL '7 days')
         `;
-        const statusRes = await pool.query(statusQuery, [companyId, today]);
+        const statusRes = await pool.query(statusQuery, [companyId]);
 
         // 3. Última Entrega
         const lastDeliveryQuery = `
@@ -61,14 +63,14 @@ const getMapData = async (req, res) => {
             LEFT JOIN tabelas_64.cadcobraclientes c ON e.codigo_cliente = c.codigo_cliente
             LEFT JOIN tabelas_64.cadestoqprodutos p ON e.codigo_produto = p.codigo_produto
             WHERE e.empresa = $1 
-              AND e.data_fim = $2::date
               AND e.status = 2
               AND e.caminho_foto IS NOT NULL 
               AND LENGTH(e.caminho_foto) > 0
-            ORDER BY e.hora_fim DESC
+              AND e.data_fim >= (NOW() - INTERVAL '48 hours') -- Pega das últimas 48h
+            ORDER BY e.data_fim DESC, e.hora_fim DESC
             LIMIT 1
         `;
-        const deliveryRes = await pool.query(lastDeliveryQuery, [companyId, today]);
+        const deliveryRes = await pool.query(lastDeliveryQuery, [companyId]);
 
         // --- Formatação ---
         const formatGps = gpsRes.rows.map(r => ({
