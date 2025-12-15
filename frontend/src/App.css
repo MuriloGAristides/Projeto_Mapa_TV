@@ -1,9 +1,7 @@
-/* App.css limpo para ocupar a tela toda */
 #root {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  /* Evita barras de rolagem */
 }

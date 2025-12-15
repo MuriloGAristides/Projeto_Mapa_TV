@@ -1,1 +1,1 @@
-export const IP_DO_BACKEND = import.meta.env.VITE_API_URL || 'http://192.168.0.43:3001';
+export const IP_DO_BACKEND = import.meta.env.VITE_API_URL || 'http://192.168.0.43:3002';

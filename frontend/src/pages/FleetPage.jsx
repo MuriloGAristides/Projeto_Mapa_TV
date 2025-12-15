@@ -5,15 +5,16 @@ import styles from '../App.module.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const FleetPage = () => {
-    // 1. Pega o ID dinâmico da URL
-    const { companyId } = useParams();
+const FleetPage = ({ companyId: propId }) => {
+    const { companyId: paramId } = useParams();
+    const companyId = propId || paramId;
 
     const [data, setData] = useState({ gps: [], liveStatus: [], latestDelivery: null });
 
     const fetchData = async () => {
+        if (!companyId) return;
+
         try {
-            // 2. Usa o companyId na requisição para o backend
             const res = await fetch(`${API_URL}/map-data/${companyId}`);
             const json = await res.json();
             setData(json);
@@ -24,20 +25,25 @@ const FleetPage = () => {
 
     useEffect(() => {
         fetchData();
-        // Reinicia o intervalo sempre que o ID mudar
         const interval = setInterval(fetchData, 5000);
         return () => clearInterval(interval);
     }, [companyId]);
 
-    // 3. Define a localização da base conforme a empresa selecionada
     const getBaseLocation = () => {
-        if (String(companyId) === '3') return [-26.0425, -50.3719]; 
+        if (String(companyId) === '3') return [-26.0425, -50.3719];
         return [-26.2773, -51.1046];
     };
 
+    const isDualMode = !!propId;
+
     return (
-        <div className={styles.appContainer}>
+        <div style={{
+            width: '100%',
+            height: isDualMode ? '100%' : '100vh',
+            position: 'relative'
+        }}>
             <FleetMap
+                mapKey={`map-${companyId}`}
                 gpsData={data.gps}
                 liveStatus={data.liveStatus}
                 latestDelivery={data.latestDelivery}

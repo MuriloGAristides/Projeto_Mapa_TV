@@ -118,7 +118,7 @@ const MapAutoFit = ({ gpsData }) => {
 };
 
 // --- Componente Principal ---
-const FleetMap = ({ gpsData = [], latestDelivery, liveStatus, baseLocation }) => {
+const FleetMap = ({ gpsData = [], latestDelivery, liveStatus, baseLocation, mapKey }) => {
     const defaultCenter = [-26.24, -51.08];
     const defaultZoom = 10;
 
@@ -140,7 +140,7 @@ const FleetMap = ({ gpsData = [], latestDelivery, liveStatus, baseLocation }) =>
     return (
         <div className={styles.mapWrapper}>
             <MapContainer
-                key="fleet-map-static"
+                key={mapKey || "fleet-map-default"}
                 center={defaultCenter}
                 zoom={defaultZoom}
                 scrollWheelZoom={true}

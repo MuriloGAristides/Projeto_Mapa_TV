@@ -66,7 +66,7 @@ const getMapData = async (req, res) => {
               AND e.status = 2
               AND e.caminho_foto IS NOT NULL 
               AND LENGTH(e.caminho_foto) > 0
-              AND e.data_fim >= (NOW() - INTERVAL '48 hours') -- Pega das últimas 48h
+              AND e.data_fim >= (NOW() - INTERVAL '48 hours')
             ORDER BY e.data_fim DESC, e.hora_fim DESC
             LIMIT 1
         `;

@@ -2,18 +2,21 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import FleetPage from './pages/FleetPage';
+import DualMonitorPage from './pages/DualMonitorPage'; 
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/tv2">
       <Routes>
-        {/* Rota raiz redireciona para a empresa 1 (Fábrica) */}
-        <Route path="/" element={<Navigate to="/tv-mapa/1" replace />} />
 
-        {/* Rota /tv sem ID também redireciona para a empresa 1 */}
-        <Route path="/tv-mapa" element={<Navigate to="/tv-mapa/1" replace />} />
+        {/* 1. Rota Específica (Monitor) */}
+        <Route path="/monitor" element={<DualMonitorPage />} />
 
-        <Route path="/tv-mapa/:companyId" element={<FleetPage />} />
+        {/* 2. Rota Raiz (Redireciona) */}
+        <Route path="/" element={<Navigate to="/1" replace />} />
+
+        {/* 3. Rota Dinâmica */}
+        <Route path="/:companyId" element={<FleetPage />} />
 
       </Routes>
     </BrowserRouter>
